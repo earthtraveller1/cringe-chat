@@ -4,6 +4,9 @@ import (
     "net/http"
     "log"
     "os"
+    "fmt"
+    "strings"
+    "context"
 )
 
 func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
@@ -26,5 +29,15 @@ func main() {
     }
 
     log.Printf("Listening at %s...\n", serverAddr)
-    server.ListenAndServe()
+    go server.ListenAndServe()
+
+    for {
+        var command string
+        fmt.Scanln(&command)
+
+        if strings.HasPrefix(command, "q") {
+            server.Shutdown(context.TODO())
+            break
+        }
+    }
 }
