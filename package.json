@@ -5,6 +5,7 @@
     },
     "scripts": {
         "tailwind": "tailwindcss -i ./tailwind.css -o ./build/tailwind.css --watch",
-        "typescript": "npx tsc --watch"
+        "typescript": "npx tsc --watch",
+        "build": "tailwindcss -i ./tailwind.css -o ./build/tailwind.css"
     }
 }
