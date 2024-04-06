@@ -10,12 +10,11 @@ import (
 )
 
 func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
-    http.ServeFile(pWriter, pRequest, "index.html")
+    http.ServeFile(pWriter, pRequest, "pages/index.html")
 }
 
 func buildFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     realPath, _ := strings.CutPrefix(pRequest.URL.Path, "/")
-    log.Printf("Serving %s...\n", realPath)
     http.ServeFile(pWriter, pRequest, realPath)
 }
 
