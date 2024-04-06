@@ -13,13 +13,21 @@
             <h1 class="sm:max-lg:text-9xl text-5xl py-4 sm:max-lg:py-16">Cringe Chat</h1>
             <p class="py-4 sm:max-lg:py-8">Please pick a username.</p>
 
-            <input 
-                type="text"
-                class=
-                    "mx-auto my-8 bg-neutral-700 outline-none p-4 rounded-xl
-                    sm:max-lg:p-8 w-7xl"
-                placeholder="Username"
-            >
+            <div class="flex flex-row max-w-fit mx-auto items-center">
+                <input 
+                    type="text"
+                    class="mx-auto my-8 bg-neutral-700 outline-none p-4 rounded-xl sm:max-lg:p-8 w-7xl"
+                    placeholder="Username"
+                >
+                <input 
+                    class=
+                        "bg-slate-600 max-w-fit grow-0 cursor-pointer mx-4 p-4 rounded-xl 
+                        hover:bg-slate-700 active:bg-slate-800 sm:max-lg:p-8" 
+                    type="button" 
+                    value="Join"
+                >
+            </div>
+
         </main>
     </body>
 </html>
