@@ -7,14 +7,33 @@ import (
     "fmt"
     "strings"
     "context"
+    "text/template"
 )
+
+type ChatTemplateParameters struct {
+    Username string
+}
 
 func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     http.ServeFile(pWriter, pRequest, "pages/index.html")
 }
 
 func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
-    http.ServeFile(pWriter, pRequest, "pages/chat.html")
+    chatTemplate, err := template.ParseFiles("pages/chat.html") 
+    if err != nil {
+        fmt.Fprintf(pWriter, "Failed to parse the template.")
+        pWriter.WriteHeader(500)
+    }
+
+    parameters := ChatTemplateParameters {
+        Username: fmt.Sprintf("\"%s\"", pRequest.FormValue("username")),
+    }
+
+    err = chatTemplate.Execute(pWriter, parameters)
+    if err != nil {
+        fmt.Fprintf(pWriter, "Failed to execute the template.")
+        pWriter.WriteHeader(500)
+    }
 }
 
 func staticFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
