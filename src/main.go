@@ -20,7 +20,6 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
 func staticFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     realPath, _ := strings.CutPrefix(pRequest.URL.Path, "/")
     http.ServeFile(pWriter, pRequest, realPath)
-    log.Println("serving some static files")
 }
 
 func main() {
