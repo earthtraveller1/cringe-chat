@@ -17,9 +17,10 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     http.ServeFile(pWriter, pRequest, "pages/chat.html")
 }
 
-func buildFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
+func staticFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     realPath, _ := strings.CutPrefix(pRequest.URL.Path, "/")
     http.ServeFile(pWriter, pRequest, realPath)
+    log.Println("serving some static files")
 }
 
 func main() {
@@ -27,7 +28,8 @@ func main() {
 
     serverMux.HandleFunc("/", indexHandler)
     serverMux.HandleFunc("/chat", chatHandler)
-    serverMux.HandleFunc("/build/", buildFilesHandler)
+    serverMux.HandleFunc("/build/", staticFilesHandler)
+    serverMux.HandleFunc("/vendor/", staticFilesHandler)
 
     serverAddr := "0.0.0.0:6969"
     if len(os.Args) > 2 {
