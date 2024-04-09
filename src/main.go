@@ -8,6 +8,8 @@ import (
     "strings"
     "context"
     "text/template"
+
+    "github.com/gorilla/websocket"
 )
 
 type ChatTemplateParameters struct {
