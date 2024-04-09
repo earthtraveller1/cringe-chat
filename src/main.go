@@ -13,6 +13,10 @@ func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     http.ServeFile(pWriter, pRequest, "pages/index.html")
 }
 
+func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
+    http.ServeFile(pWriter, pRequest, "pages/chat.html")
+}
+
 func buildFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     realPath, _ := strings.CutPrefix(pRequest.URL.Path, "/")
     http.ServeFile(pWriter, pRequest, realPath)
@@ -22,6 +26,7 @@ func main() {
     serverMux := http.NewServeMux()
 
     serverMux.HandleFunc("/", indexHandler)
+    serverMux.HandleFunc("/chat", chatHandler)
     serverMux.HandleFunc("/build/", buildFilesHandler)
 
     serverAddr := "0.0.0.0:6969"
