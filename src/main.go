@@ -8,12 +8,18 @@ import (
     "strings"
     "context"
     "text/template"
+    "encoding/json"
 
     "github.com/gorilla/websocket"
 )
 
 type ChatTemplateParameters struct {
     Username string
+}
+
+type ChatMessage struct {
+    Username string `json:"username"`
+    Message string `json:"message"`
 }
 
 func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
@@ -35,6 +41,49 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     if err != nil {
         fmt.Fprintf(pWriter, "Failed to execute the template.")
         pWriter.WriteHeader(500)
+    }
+}
+
+func chatSocketHandler(pMessages chan Message, pWriter http.ResponseWriter, pRequest *http.Request) {
+    upgrader := websocket.Upgrader {}
+    connection, err := upgrader.Upgrade(pWriter, pRequest, nil)
+    if err != nil {
+        fmt.Fprintf(pWriter, "Failed to upgrade the websocket request. Error: %e\n", err)
+        pWriter.WriteHeader(500)
+        return
+    }
+
+    defer connection.Close()
+
+    messageType, usernameMessage, err := connection.ReadMessage()
+    if err != nil {
+        log.Printf("Error while trying to read a message from the websocket. Error: %e\n", err)
+        return
+    }
+
+    go func() {
+        for {
+            message := <- pMessages
+
+            err := connection.WriteMessage(websocket.TextMessage, json.Marshal(message))
+            if err != nil {
+                log.Printf("Error while trying to send a message back to the client. Error: %e\n", err)
+                return
+            }
+        }
+    } ()
+
+    for {
+        messageType, message, err := connection.ReadMessage()
+        if err != nil {
+            log.Printf("Error while trying to read a message from the websocket. Error: %en\n", err)
+            return
+        }
+
+        pMessages <- Message {
+            Username: string(usernameMessage),
+            Message: string(message)
+        }
     }
 }
 
