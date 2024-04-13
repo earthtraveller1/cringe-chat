@@ -8,6 +8,7 @@ import (
     "strings"
     "context"
     "encoding/json"
+    "sync"
 
     "github.com/gorilla/websocket"
 )
@@ -29,7 +30,7 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     http.ServeFile(pWriter, pRequest, "pages/chat.html")
 }
 
-func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, pRequest *http.Request) {
+func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan ChatMessage), pWriter http.ResponseWriter, pRequest *http.Request) {
     upgrader := websocket.Upgrader {}
     connection, err := upgrader.Upgrade(pWriter, pRequest, nil)
     if err != nil {
@@ -46,12 +47,14 @@ func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, 
         return
     }
 
-    log.Println("yes, someone tried to start a websocket connection!")
+    messageListener := make(chan ChatMessage)
+
+    pMessageMutex.Lock()
+    append(pMessageListeners, messageListener)
+    pMessageMutex.Unlock()
 
     go func() {
-        for {
-            message := <- pMessages
-
+        for message := range messageListener {
             jsonMessage, err := json.Marshal(message)
             if err != nil {
                 log.Printf("Error while trying to marshal a message into a JSON")
@@ -75,10 +78,16 @@ func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, 
 
         log.Printf("[%s]: %s\n", string(usernameMessage), string(message))
 
-        pMessages <- ChatMessage {
-            Username: string(usernameMessage),
-            Message: string(message),
+        pMessageMutex.Lock()
+
+        for listener := range pMessageListeners {
+            listener <- ChatMessage {
+                Username: string(usernameMessage),
+                Message: string(message),
+            }
         }
+
+        pMessageMutex.Unlock()
     }
 }
 
@@ -90,12 +99,14 @@ func staticFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
 func main() {
     serverMux := http.NewServeMux()
 
-    messageChannel := make(chan ChatMessage)
+
+    messageListeners := [](chan ChatMessage){}
+    messageMutex := sync.Mutex {}
 
     serverMux.HandleFunc("/", indexHandler)
     serverMux.HandleFunc("/chat", chatHandler)
     serverMux.HandleFunc("/chat/socket", func (pWriter http.ResponseWriter, pRequest *http.Request) {
-        chatSocketHandler(messageChannel, pWriter, pRequest)
+        chatSocketHandler(&messageListeners, pWriter, pRequest)
     })
     serverMux.HandleFunc("/build/", staticFilesHandler)
     serverMux.HandleFunc("/vendor/", staticFilesHandler)
