@@ -18,12 +18,14 @@
                 data-hx-get="/chat"
                 data-hx-target="closest main"
                 data-hx-swap="outerHTML"
+                id="join-form"
             >
                 <input 
                     type="text"
                     name="username"
                     class="mx-auto my-8 bg-neutral-700 outline-none p-4 rounded-xl sm:max-lg:p-8 w-7xl"
                     placeholder="Username"
+                    id="form-username"
                 >
                 <input 
                     class=
@@ -35,4 +37,6 @@
             </form>
         </main>
     </body>
+
+    <script src="/scripts/index.js"></script>
 </html>

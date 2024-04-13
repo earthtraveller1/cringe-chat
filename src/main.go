@@ -27,21 +27,7 @@ func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
 }
 
 func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
-    chatTemplate, err := template.ParseFiles("pages/chat.html") 
-    if err != nil {
-        fmt.Fprintf(pWriter, "Failed to parse the template.")
-        pWriter.WriteHeader(500)
-    }
-
-    parameters := ChatTemplateParameters {
-        Username: fmt.Sprintf("\"%s\"", pRequest.FormValue("username")),
-    }
-
-    err = chatTemplate.Execute(pWriter, parameters)
-    if err != nil {
-        fmt.Fprintf(pWriter, "Failed to execute the template.")
-        pWriter.WriteHeader(500)
-    }
+    http.ServeFile(pWriter, pRequest, "pages/chat.html")
 }
 
 func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, pRequest *http.Request) {
@@ -105,6 +91,7 @@ func main() {
     serverMux.HandleFunc("/chat", chatHandler)
     serverMux.HandleFunc("/build/", staticFilesHandler)
     serverMux.HandleFunc("/vendor/", staticFilesHandler)
+    serverMux.HandleFunc("/scripts/", staticFilesHandler)
 
     serverAddr := "0.0.0.0:6969"
     if len(os.Args) > 2 {
