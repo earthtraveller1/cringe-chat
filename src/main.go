@@ -44,7 +44,7 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     }
 }
 
-func chatSocketHandler(pMessages chan Message, pWriter http.ResponseWriter, pRequest *http.Request) {
+func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, pRequest *http.Request) {
     upgrader := websocket.Upgrader {}
     connection, err := upgrader.Upgrade(pWriter, pRequest, nil)
     if err != nil {
@@ -55,7 +55,7 @@ func chatSocketHandler(pMessages chan Message, pWriter http.ResponseWriter, pReq
 
     defer connection.Close()
 
-    messageType, usernameMessage, err := connection.ReadMessage()
+    _, usernameMessage, err := connection.ReadMessage()
     if err != nil {
         log.Printf("Error while trying to read a message from the websocket. Error: %e\n", err)
         return
@@ -65,7 +65,13 @@ func chatSocketHandler(pMessages chan Message, pWriter http.ResponseWriter, pReq
         for {
             message := <- pMessages
 
-            err := connection.WriteMessage(websocket.TextMessage, json.Marshal(message))
+            jsonMessage, err := json.Marshal(message)
+            if err != nil {
+                log.Printf("Error while trying to marshal a message into a JSON")
+                return
+            }
+
+            err = connection.WriteMessage(websocket.TextMessage, jsonMessage)
             if err != nil {
                 log.Printf("Error while trying to send a message back to the client. Error: %e\n", err)
                 return
@@ -74,15 +80,15 @@ func chatSocketHandler(pMessages chan Message, pWriter http.ResponseWriter, pReq
     } ()
 
     for {
-        messageType, message, err := connection.ReadMessage()
+        _, message, err := connection.ReadMessage()
         if err != nil {
             log.Printf("Error while trying to read a message from the websocket. Error: %en\n", err)
             return
         }
 
-        pMessages <- Message {
+        pMessages <- ChatMessage {
             Username: string(usernameMessage),
-            Message: string(message)
+            Message: string(message),
         }
     }
 }
