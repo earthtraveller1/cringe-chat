@@ -73,6 +73,8 @@ func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, 
             return
         }
 
+        log.Printf("[%s]: %s\n", string(usernameMessage), string(message))
+
         pMessages <- ChatMessage {
             Username: string(usernameMessage),
             Message: string(message),
