@@ -7,7 +7,6 @@ import (
     "fmt"
     "strings"
     "context"
-    "text/template"
     "encoding/json"
 
     "github.com/gorilla/websocket"
@@ -34,7 +33,7 @@ func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, 
     upgrader := websocket.Upgrader {}
     connection, err := upgrader.Upgrade(pWriter, pRequest, nil)
     if err != nil {
-        fmt.Fprintf(pWriter, "Failed to upgrade the websocket request. Error: %e\n", err)
+        log.Printf("Failed to upgrade the websocket request. Error: %e\n", err)
         pWriter.WriteHeader(500)
         return
     }
@@ -46,6 +45,8 @@ func chatSocketHandler(pMessages chan ChatMessage, pWriter http.ResponseWriter, 
         log.Printf("Error while trying to read a message from the websocket. Error: %e\n", err)
         return
     }
+
+    log.Println("yes, someone tried to start a websocket connection!")
 
     go func() {
         for {
@@ -87,8 +88,13 @@ func staticFilesHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
 func main() {
     serverMux := http.NewServeMux()
 
+    messageChannel := make(chan ChatMessage)
+
     serverMux.HandleFunc("/", indexHandler)
     serverMux.HandleFunc("/chat", chatHandler)
+    serverMux.HandleFunc("/chat/socket", func (pWriter http.ResponseWriter, pRequest *http.Request) {
+        chatSocketHandler(messageChannel, pWriter, pRequest)
+    })
     serverMux.HandleFunc("/build/", staticFilesHandler)
     serverMux.HandleFunc("/vendor/", staticFilesHandler)
     serverMux.HandleFunc("/scripts/", staticFilesHandler)
