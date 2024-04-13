@@ -12,7 +12,11 @@ function chatMain() {
     chatSocket.onmessage = (socketMessage) => {
         let messageObject = JSON.parse(socketMessage.data)
         let message = document.createElement("p")
-        message.innerText = messageObject.message
+        let username = document.createElement("strong")
+        username.appendChild(document.createTextNode(`[${messageObject.username}]: `))
+        message.appendChild(username)
+        message.appendChild(document.createTextNode(messageObject.message))
+
         messageList.appendChild(message)
     }
     
