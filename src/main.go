@@ -50,7 +50,7 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
     messageListener := make(chan ChatMessage)
 
     pMessageMutex.Lock()
-    append(pMessageListeners, messageListener)
+    *pMessageListeners = append(*pMessageListeners, messageListener)
     pMessageMutex.Unlock()
 
     go func() {
@@ -80,7 +80,7 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
 
         pMessageMutex.Lock()
 
-        for listener := range pMessageListeners {
+        for _, listener := range *pMessageListeners {
             listener <- ChatMessage {
                 Username: string(usernameMessage),
                 Message: string(message),
@@ -106,7 +106,7 @@ func main() {
     serverMux.HandleFunc("/", indexHandler)
     serverMux.HandleFunc("/chat", chatHandler)
     serverMux.HandleFunc("/chat/socket", func (pWriter http.ResponseWriter, pRequest *http.Request) {
-        chatSocketHandler(&messageListeners, pWriter, pRequest)
+        chatSocketHandler(messageMutex, &messageListeners, pWriter, pRequest)
     })
     serverMux.HandleFunc("/build/", staticFilesHandler)
     serverMux.HandleFunc("/vendor/", staticFilesHandler)
