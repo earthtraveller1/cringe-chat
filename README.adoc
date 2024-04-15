@@ -14,7 +14,7 @@ Simply run the following in the terminal.
 ----
 npm install -D
 npm run build
-go run src/main.go
+go run -mod=readonly src/main.go
 ----
 
 And then visit `0.0.0.0:6969`, which is the default address.
