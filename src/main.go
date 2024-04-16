@@ -31,6 +31,12 @@ func chatHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
     http.ServeFile(pWriter, pRequest, "pages/chat.html")
 }
 
+func broadcastMessage(pMessageListeners [](chan ChatMessage), pMessage ChatMessage) {
+    for _, listener := range pMessageListeners {
+        listener <- pMessage
+    }
+}
+
 func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan ChatMessage), pWriter http.ResponseWriter, pRequest *http.Request) {
     upgrader := websocket.Upgrader {}
     connection, err := upgrader.Upgrade(pWriter, pRequest, nil)
@@ -53,6 +59,7 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
 
     pMessageMutex.Lock()
     *pMessageListeners = append(*pMessageListeners, messageListener)
+
     pMessageMutex.Unlock()
 
     go func() {
@@ -75,6 +82,16 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
         }
     } ()
 
+    pMessageMutex.Lock()
+
+    broadcastMessage(*pMessageListeners, ChatMessage {
+        Username: "SYSTEM",
+        Message: fmt.Sprintf("%s joined the chat.", usernameMessage),
+        Closing: false,
+    })
+
+    pMessageMutex.Unlock()
+
     for {
         message := []byte{}
         _, message, err := connection.ReadMessage()
@@ -85,6 +102,13 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
                 pMessageMutex.Lock()
                 (*pMessageListeners)[messageListenerIndex] = (*pMessageListeners)[len(*pMessageListeners) - 1]
                 *pMessageListeners = (*pMessageListeners)[:len(*pMessageListeners) - 1]
+
+                broadcastMessage(*pMessageListeners, ChatMessage {
+                    Username: "SYSTEM",
+                    Message: fmt.Sprintf("%s left the chat.", usernameMessage),
+                    Closing: false,
+                })
+
                 pMessageMutex.Unlock()
 
                 messageListener <- ChatMessage {
@@ -104,13 +128,11 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
 
         pMessageMutex.Lock()
 
-        for _, listener := range *pMessageListeners {
-            listener <- ChatMessage {
-                Username: string(usernameMessage),
-                Message: string(message),
-                Closing: false,
-            }
-        }
+        broadcastMessage(*pMessageListeners, ChatMessage {
+            Username: string(usernameMessage),
+            Message: string(message),
+            Closing: false,
+        })
 
         pMessageMutex.Unlock()
     }
