@@ -2,7 +2,7 @@
     <div id="messageList" class="overflow-scroll min-h-80 max-h-80 border-solid border-2 border-slate-950 my-8">
     </div>
 
-    <div class="flex">
+    <form class="flex" id="messageForm">
         <input 
             class="
                 border-b-solid border-b-8 border-b-neutral-500 outline-none w-full
@@ -14,7 +14,7 @@
             autoComplete="off"
         >
 
-        <button id="sendButton" class="bg-lime-600 p-4 rounded-xl ml-4 hover:bg-lime-700 active:bg-lime-500">&gt</button>
+        <input type="submit" id="sendButton" class="bg-lime-600 p-4 rounded-xl ml-4 hover:bg-lime-700 active:bg-lime-500" value=">">
     </div>
 
     <script src="/scripts/chat.js"></script>

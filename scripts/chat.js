@@ -2,6 +2,7 @@ function chatMain() {
     let messageList = document.getElementById("messageList")
     let messageBox = document.getElementById("messageBox")
     let sendButton = document.getElementById("sendButton")
+    let messageForm = document.getElementById("messageForm")
 
     let chatSocket = new WebSocket(`ws://${location.host}/chat/socket`)
 
@@ -20,9 +21,10 @@ function chatMain() {
         messageList.appendChild(message)
     }
     
-    sendButton.onclick = () => {
+    messageForm.addEventListener("submit", (event) => {
+        event.preventDefault()
         chatSocket.send(messageBox.value)
-    }
+    })
 }
 
 chatMain()
