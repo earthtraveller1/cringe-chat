@@ -19,6 +19,7 @@ function chatMain() {
         message.appendChild(document.createTextNode(messageObject.message))
 
         messageList.appendChild(message)
+        messageList.scrollTo(0, messageList.scrollHeight)
     }
     
     messageForm.addEventListener("submit", (event) => {
