@@ -134,7 +134,7 @@ func main() {
         chatSocketHandler(messageMutex, &messageListeners, pWriter, pRequest)
     })
     serverMux.HandleFunc("/build/", staticFilesHandler)
-    serverMux.HandleFunc("/vendor/", staticFilesHandler)
+    serverMux.HandleFunc("/vendor-files/", staticFilesHandler)
     serverMux.HandleFunc("/scripts/", staticFilesHandler)
 
     serverAddr := "0.0.0.0:6969"
