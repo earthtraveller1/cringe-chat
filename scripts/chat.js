@@ -24,6 +24,7 @@ function chatMain() {
     messageForm.addEventListener("submit", (event) => {
         event.preventDefault()
         chatSocket.send(messageBox.value)
+        messageBox.value = ""
     })
 }
 
