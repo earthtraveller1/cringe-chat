@@ -20,6 +20,7 @@ type ChatTemplateParameters struct {
 type ChatMessage struct {
     Username string `json:"username"`
     Message string `json:"message"`
+    Closing bool `json:"closing"`
 }
 
 func indexHandler(pWriter http.ResponseWriter, pRequest *http.Request) {
@@ -48,6 +49,7 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
     }
 
     messageListener := make(chan ChatMessage)
+    messageListenerIndex := len(*pMessageListeners)
 
     pMessageMutex.Lock()
     *pMessageListeners = append(*pMessageListeners, messageListener)
@@ -55,6 +57,10 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
 
     go func() {
         for message := range messageListener {
+            if message.Closing {
+                return
+            }
+
             jsonMessage, err := json.Marshal(message)
             if err != nil {
                 log.Printf("Error while trying to marshal a message into a JSON")
@@ -70,8 +76,22 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
     } ()
 
     for {
-        _, message, err := connection.ReadMessage()
+        message := []byte{}
+        messageType, message, err := connection.ReadMessage()
         if err != nil {
+            if messageType == websocket.CloseMessage {
+                log.Printf("A client has closed the connection to the server.")
+                // Remove the channel from the list of channels.
+                (*pMessageListeners)[messageListenerIndex] = (*pMessageListeners)[len(*pMessageListeners) - 1]
+                *pMessageListeners = (*pMessageListeners)[:len(*pMessageListeners) - 1]
+
+                messageListener <- ChatMessage {
+                    Username: "",
+                    Message: "",
+                    Closing: true,
+                }
+            }
+
             log.Printf("Error while trying to read a message from the websocket. Error: %en\n", err)
             return
         }
@@ -84,6 +104,7 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
             listener <- ChatMessage {
                 Username: string(usernameMessage),
                 Message: string(message),
+                Closing: false,
             }
         }
 
