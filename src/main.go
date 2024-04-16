@@ -77,9 +77,9 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
 
     for {
         message := []byte{}
-        messageType, message, err := connection.ReadMessage()
+        _, message, err := connection.ReadMessage()
         if err != nil {
-            if messageType == websocket.CloseMessage {
+            if websocket.IsUnexpectedCloseError(err, 0) {
                 log.Printf("A client has closed the connection to the server.")
                 // Remove the channel from the list of channels.
                 (*pMessageListeners)[messageListenerIndex] = (*pMessageListeners)[len(*pMessageListeners) - 1]
@@ -90,6 +90,8 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
                     Message: "",
                     Closing: true,
                 }
+
+                return
             }
 
             log.Printf("Error while trying to read a message from the websocket. Error: %en\n", err)
