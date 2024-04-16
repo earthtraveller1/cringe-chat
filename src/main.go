@@ -82,8 +82,10 @@ func chatSocketHandler(pMessageMutex sync.Mutex, pMessageListeners *[](chan Chat
             if websocket.IsUnexpectedCloseError(err, 0) {
                 log.Printf("A client has closed the connection to the server.")
                 // Remove the channel from the list of channels.
+                pMessageMutex.Lock()
                 (*pMessageListeners)[messageListenerIndex] = (*pMessageListeners)[len(*pMessageListeners) - 1]
                 *pMessageListeners = (*pMessageListeners)[:len(*pMessageListeners) - 1]
+                pMessageMutex.Unlock()
 
                 messageListener <- ChatMessage {
                     Username: "",
